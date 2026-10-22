@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Metric Safari: Length Conversion Explorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Fredoka', cursive, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    
+    @keyframes floatUpDown {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+    .animate-float {
+      animation: floatUpDown 3s ease-in-out infinite;
+    }
+
+    @keyframes pulsePop {
+      0% { transform: scale(0.95); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .pop-in {
+      animation: pulsePop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes bounceZero {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-12px) scale(1.15); }
+    }
+    .bounce-zero {
+      animation: bounceZero 1.2s ease-in-out infinite;
+    }
+
+    @keyframes popAway {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3) translateY(-10px); opacity: 0.8; }
+      100% { transform: scale(0.4) translateY(-25px); opacity: 0; }
+    }
+    .pop-away {
+      animation: popAway 1.5s ease-out infinite;
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-5deg); }
+      75% { transform: rotate(5deg); }
+    }
+    .wiggle {
+      animation: wiggle 0.4s ease-in-out infinite;
+    }
+
+    /* Custom 3D-styled chunky bouncy buttons */
+    .btn-3d {
+      transition: all 0.12s ease;
+      position: relative;
+    }
+    .btn-3d:active, .btn-3d.active {
+      transform: translateY(4px);
+    }
+    
+    .btn-yellow {
+      background: linear-gradient(180deg, #FDE047 0%, #EAB308 100%);
+      border-bottom: 5px solid #CA8A04;
+    }
+    .btn-yellow:active {
+      border-bottom-width: 1px;
+    }
+
+    .btn-green {
+      background: linear-gradient(180deg, #4ADE80 0%, #16A34A 100%);
+      border-bottom: 5px solid #15803D;
+    }
+    .btn-green:active {
+      border-bottom-width: 1px;
+    }
+
+    .btn-blue {
+      background: linear-gradient(180deg, #60A5FA 0%, #2563EB 100%);
+      border-bottom: 5px solid #1D4ED8;
+    }
+    .btn-blue:active {
+      border-bottom-width: 1px;
+    }
+
+    .btn-orange {
+      background: linear-gradient(180deg, #FB923C 0%, #EA580C 100%);
+      border-bottom: 5px solid #C2410C;
+    }
+    .btn-orange:active {
+      border-bottom-width: 1px;
+    }
+
+    .btn-purple {
+      background: linear-gradient(180deg, #C084FC 0%, #9333EA 100%);
+      border-bottom: 5px solid #7E22CE;
+    }
+    .btn-purple:active {
+      border-bottom-width: 1px;
+    }
+
+    /* Card matching tiles */
+    .match-card {
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .match-card.selected {
+      transform: scale(1.06);
+      box-shadow: 0 0 0 4px #F59E0B, 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    }
+    .match-card.matched {
+      transform: scale(0.95);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* Hide scrollbars for clean child touch UI */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-sky-300 via-amber-100 to-emerald-200 min-h-screen text-slate-800 flex flex-col justify-between overflow-x-hidden p-2 sm:p-4">
+
+  <!-- Top Navigation & Header Bar -->
+  <header class="w-full max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2 bg-white/80 backdrop-blur-md rounded-3xl p-3 sm:px-6 shadow-xl border-4 border-amber-300">
+    <div class="flex items-center space-x-3">
+      <span class="text-3xl sm:text-4xl filter drop-shadow">🦁</span>
+      <div>
+        <h1 class="text-xl sm:text-2xl font-black tracking-wide text-amber-800 leading-tight">
+          Metric Safari
+        </h1>
+        <p class="text-xs sm:text-sm font-semibold text-emerald-700">Length Conversion Adventure</p>
+      </div>
+    </div>
+
+    <!-- Live Stats -->
+    <div class="flex items-center space-x-2 sm:space-x-4">
+      <!-- Stars Counter -->
+      <div class="flex items-center bg-amber-100 px-3 py-1.5 rounded-2xl border-2 border-amber-400 font-bold text-amber-700 shadow-sm text-sm sm:text-base">
+        <span class="mr-1.5 text-lg">⭐</span>
+        <span id="starCounter">0</span>
+      </div>
+
+      <!-- Streak Badge -->
+      <div class="flex items-center bg-orange-100 px-3 py-1.5 rounded-2xl border-2 border-orange-400 font-bold text-orange-600 shadow-sm text-sm sm:text-base">
+        <span class="mr-1 text-lg">🔥</span>
+        <span id="streakCounter">0</span>
+      </div>
+
+      <!-- Audio Mute Button -->
+      <button id="soundToggleBtn" class="p-2 sm:p-2.5 rounded-2xl bg-sky-100 hover:bg-sky-200 border-2 border-sky-400 text-sky-700 text-lg transition" title="Toggle Sound">
+        🔊
+      </button>
+
+      <!-- Helper / Staircase Button -->
+      <button id="staircaseHelpBtn" class="px-3 py-1.5 rounded-2xl bg-purple-500 hover:bg-purple-600 text-white font-bold border-b-4 border-purple-700 shadow flex items-center gap-1.5 text-sm sm:text-base active:translate-y-0.5 transition">
+        <span>🪜</span> <span class="hidden sm:inline">Zero Ladder</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Level Selection Carousel / Badges -->
+  <div class="w-full max-w-4xl mx-auto my-3 px-1">
+    <div class="flex items-center justify-between gap-1 sm:gap-3 overflow-x-auto no-scrollbar py-1">
+      <button onclick="setLevel(1)" id="lvlBtn1" class="lvl-btn flex-1 min-w-[78px] py-2 px-2 rounded-2xl font-black text-xs sm:text-sm text-center border-4 border-emerald-500 bg-white text-emerald-800 shadow transition-all">
+        <div class="text-base sm:text-lg">🌱 Lvl 1</div>
+        <div class="text-[10px] sm:text-xs text-slate-500 font-bold">1 Zero (mm/cm)</div>
+      </button>
+      <button onclick="setLevel(2)" id="lvlBtn2" class="lvl-btn flex-1 min-w-[78px] py-2 px-2 rounded-2xl font-black text-xs sm:text-sm text-center border-4 border-transparent bg-white/70 text-slate-600 shadow transition-all">
+        <div class="text-base sm:text-lg">🌿 Lvl 2</div>
+        <div class="text-[10px] sm:text-xs text-slate-500 font-bold">2 Zeros (cm/m)</div>
+      </button>
+      <button onclick="setLevel(3)" id="lvlBtn3" class="lvl-btn flex-1 min-w-[78px] py-2 px-2 rounded-2xl font-black text-xs sm:text-sm text-center border-4 border-transparent bg-white/70 text-slate-600 shadow transition-all">
+        <div class="text-base sm:text-lg">🦒 Lvl 3</div>
+        <div class="text-[10px] sm:text-xs text-slate-500 font-bold">3 Zeros (m/km)</div>
+      </button>
+      <button onclick="setLevel(4)" id="lvlBtn4" class="lvl-btn flex-1 min-w-[78px] py-2 px-2 rounded-2xl font-black text-xs sm:text-sm text-center border-4 border-transparent bg-white/70 text-slate-600 shadow transition-all">
+        <div class="text-base sm:text-lg">👑 Master</div>
+        <div class="text-[10px] sm:text-xs text-slate-500 font-bold">All Mixed!</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Zero Detective Quick-Rule Banner -->
+  <div class="w-full max-w-4xl mx-auto mb-2 bg-gradient-to-r from-amber-400 via-orange-300 to-yellow-300 p-2 sm:p-3 rounded-2xl shadow-md border-2 border-amber-500 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-bold text-amber-950">
+    <div class="flex items-center gap-1.5">
+      <span class="text-xl">🔍</span>
+      <span><strong>Zero Rule:</strong> Going to smaller units? <strong>Add zeros!</strong> Going bigger? <strong>Take zeros away!</strong></span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="bg-white/80 px-2 py-0.5 rounded-lg border border-amber-600">cm ➔ mm: <strong>+1 zero (0)</strong></span>
+      <span class="bg-white/80 px-2 py-0.5 rounded-lg border border-amber-600">m ➔ cm: <strong>+2 zeros (00)</strong></span>
+      <span class="bg-white/80 px-2 py-0.5 rounded-lg border border-amber-600">km ➔ m: <strong>+3 zeros (000)</strong></span>
+    </div>
+  </div>
+
+  <!-- Mode Selector Tabs -->
+  <div class="w-full max-w-md mx-auto mb-2 flex bg-amber-200/90 p-1.5 rounded-2xl shadow-inner border-2 border-amber-300">
+    <button id="tabQuiz" onclick="switchMode('quiz')" class="flex-1 py-2 font-black rounded-xl text-amber-900 bg-white shadow-md text-sm sm:text-base transition">
+      🎯 Safari Quiz
+    </button>
+    <button id="tabMatch" onclick="switchMode('match')" class="flex-1 py-2 font-bold rounded-xl text-amber-800 hover:bg-white/50 text-sm sm:text-base transition">
+      🧩 Match Pairs
+    </button>
+  </div>
+
+  <!-- MAIN PLAY AREA CONTAINER -->
+  <main class="w-full max-w-4xl mx-auto flex-1 flex flex-col justify-center items-center">
+
+    <!-- ================= MODE 1: SAFARI QUIZ ================= -->
+    <div id="quizView" class="w-full bg-white/95 backdrop-blur-md rounded-3xl p-4 sm:p-7 shadow-2xl border-4 border-amber-400 relative overflow-hidden transition-all">
+      
+      <!-- Mascot Encouragement Speech Bubble -->
+      <div class="flex items-center gap-3 bg-amber-50 p-2.5 sm:p-3.5 rounded-2xl border-2 border-amber-200 mb-4 sm:mb-6">
+        <div class="text-3xl sm:text-4xl animate-float" id="mascotIcon">🦁</div>
+        <div class="flex-1">
+          <p id="mascotText" class="text-xs sm:text-sm font-bold text-amber-900">
+            Hi Safari Explorer! Remember: 10 mm make 1 cm. Let's do this!
+          </p>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-gradient-to-r from-emerald-100 via-teal-50 to-emerald-100 rounded-3xl p-5 sm:p-8 text-center border-3 border-emerald-300 shadow-inner relative">
+        <div class="inline-block bg-emerald-500 text-white font-extrabold text-xs sm:text-sm px-4 py-1 rounded-full uppercase tracking-widest shadow-sm mb-3">
+          Question <span id="currentQNum">1</span> / 10
+        </div>
+
+        <div class="flex items-center justify-center flex-wrap gap-2 sm:gap-4 my-2">
+          <!-- Given side -->
+          <div class="text-3xl sm:text-5xl font-black text-slate-800 tracking-tight bg-white px-5 py-3 rounded-2xl shadow-md border-2 border-emerald-200">
+            <span id="questionVal">3</span> <span id="questionUnit" class="text-emerald-600 font-bold">cm</span>
+          </div>
+          
+          <div class="text-3xl sm:text-4xl font-black text-amber-500 animate-pulse">=</div>
+
+          <!-- Answer target slot -->
+          <div class="min-w-[130px] sm:min-w-[170px] text-3xl sm:text-5xl font-black tracking-tight bg-amber-100 border-4 border-dashed border-amber-400 px-5 py-3 rounded-2xl shadow-inner flex items-center justify-center text-amber-800">
+            <span id="playerInputDisplay" class="text-emerald-700">?</span>
+            <span id="targetUnit" class="text-amber-700 ml-2 text-2xl sm:text-4xl font-extrabold">mm</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Zero-Hint Visual Area -->
+        <div id="zeroHintCard" class="mt-4 bg-white/95 rounded-2xl p-3 border-2 border-amber-300 shadow-sm max-w-lg mx-auto transition-all">
+          <div class="flex items-center justify-between border-b border-amber-200 pb-2 mb-2">
+            <div class="flex items-center gap-1.5 font-bold text-amber-900 text-xs sm:text-sm">
+              <span class="text-lg">🎈</span> <span id="zeroHintHeading">Zero Detective Hint</span>
+            </div>
+            <button onclick="toggleZeroHintVisibility()" id="zeroHintToggleBtn" class="text-xs font-bold text-amber-700 hover:text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
+              Hide Zero Hint
+            </button>
+          </div>
+          
+          <!-- Animated Zero Bubbles & Step by step demonstration -->
+          <div id="zeroHintContent" class="flex flex-col items-center justify-center py-1">
+            <div id="zeroBubblesRow" class="flex items-center justify-center gap-2 mb-2">
+              <!-- Dynamically generated animated zero balls -->
+            </div>
+            <div id="zeroActionFormula" class="text-sm sm:text-base font-extrabold text-slate-800 tracking-wide bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
+              <!-- e.g. 5 cm × 10 = 5 with [0] added = 50 mm -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Hint Prompt -->
+        <p id="questionHint" class="text-xs sm:text-sm font-semibold text-emerald-800 mt-2 opacity-80">
+          Tip: Multiplying adds 0s! Dividing removes 0s!
+        </p>
+      </div>
+
+      <!-- Answer Input: Multi-Choice vs Number Pad Toggle -->
+      <div class="mt-4 sm:mt-6">
+        <!-- Multiple Choice Options Layout (Default for quick fun) -->
+        <div id="choiceOptionsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+          <!-- Generated via JS -->
+        </div>
+
+        <!-- Number Pad Section (Can be toggled) -->
+        <div id="numpadContainer" class="hidden mt-3 max-w-sm mx-auto">
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="pressKey('1')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">1</button>
+            <button onclick="pressKey('2')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">2</button>
+            <button onclick="pressKey('3')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">3</button>
+            <button onclick="pressKey('4')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">4</button>
+            <button onclick="pressKey('5')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">5</button>
+            <button onclick="pressKey('6')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">6</button>
+            <button onclick="pressKey('7')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">7</button>
+            <button onclick="pressKey('8')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">8</button>
+            <button onclick="pressKey('9')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">9</button>
+            <button onclick="pressKey('clear')" class="btn-3d btn-orange text-lg font-black py-2.5 rounded-xl text-white">C</button>
+            <button onclick="pressKey('0')" class="btn-3d btn-yellow text-2xl font-black py-2.5 rounded-xl text-amber-900">0</button>
+            <button onclick="submitKeyAnswer()" class="btn-3d btn-green text-lg font-black py-2.5 rounded-xl text-white">GO</button>
+          </div>
+        </div>
+
+        <!-- Toggle between Buttons and Number Pad -->
+        <div class="flex items-center justify-center gap-3 mt-4">
+          <button id="toggleInputModeBtn" onclick="toggleInputMode()" class="text-xs sm:text-sm font-bold text-slate-600 hover:text-emerald-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full transition flex items-center gap-1.5">
+            <span>⌨️</span> <span id="toggleInputText">Switch to Number Pad</span>
+          </button>
+          <button onclick="showQuickHint()" class="text-xs sm:text-sm font-bold text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-full transition flex items-center gap-1.5">
+            <span>💡</span> <span>Open Zero Chart</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODE 2: MATCHING PAIRS ================= -->
+    <div id="matchView" class="hidden w-full bg-white/95 backdrop-blur-md rounded-3xl p-4 sm:p-7 shadow-2xl border-4 border-purple-400 relative">
+      <div class="text-center mb-4">
+        <h2 class="text-xl sm:text-2xl font-black text-purple-900">Safari Match Pairs!</h2>
+        <p class="text-xs sm:text-sm font-semibold text-purple-700">Tap or click two equal measurements to link them together!</p>
+      </div>
+
+      <!-- Match Cards Grid -->
+      <div id="cardsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto py-2">
+        <!-- Injected dynamically -->
+      </div>
+
+      <!-- Match Reset / Progress -->
+      <div class="mt-5 flex items-center justify-between flex-wrap gap-2 bg-purple-50 p-3 rounded-2xl border border-purple-200">
+        <div class="text-sm font-bold text-purple-900">
+          Pairs Found: <span id="matchedCount" class="text-emerald-600 font-black text-lg">0</span> / 4
+        </div>
+        <button onclick="initMatchGame()" class="btn-3d btn-purple text-white px-4 py-1.5 rounded-xl text-sm font-bold shadow">
+          🔄 New Shuffle
+        </button>
+      </div>
+        <h3 class="text-2xl font-black text-amber-800">The Metric Zero Ladder</h3>
+        <p class="text-xs sm:text-sm font-semibold text-slate-500">Count the zeros to convert like a champ!</p>
+      </div>
+
+      <!-- Visual Conversion Staircase Diagram with Zero Trackers -->
+      <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border-2 border-amber-200 relative mb-4">
+        
+        <!-- Big Units down to Small Units (Multiplication) -->
+        <div class="text-center text-xs font-bold text-emerald-800 bg-emerald-100 py-1.5 px-3 rounded-xl mb-3 border border-emerald-300 flex items-center justify-center gap-2">
+          <span>⬇️ Going DOWN (Bigger ➔ Smaller)</span>
+          <span class="bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black">MULTIPLY & ADD ZEROS!</span>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 text-center font-black">
+          <!-- KM -->
+          <div class="bg-purple-200 p-2.5 rounded-2xl border-2 border-purple-400">
+            <div class="text-xs text-purple-700">Kilometre</div>
+            <div class="text-xl sm:text-2xl text-purple-900">km</div>
+          </div>
+          <!-- M -->
+          <div class="bg-blue-200 p-2.5 rounded-2xl border-2 border-blue-400">
+            <div class="text-xs text-blue-700">Metre</div>
+            <div class="text-xl sm:text-2xl text-blue-900">m</div>
+          </div>
+          <!-- CM -->
+          <div class="bg-emerald-200 p-2.5 rounded-2xl border-2 border-emerald-400">
+            <div class="text-xs text-emerald-700">Centimetre</div>
+            <div class="text-xl sm:text-2xl text-emerald-900">cm</div>
+          </div>
+          <!-- MM -->
+          <div class="bg-amber-200 p-2.5 rounded-2xl border-2 border-amber-400">
+            <div class="text-xs text-amber-700">Millimetre</div>
+            <div class="text-xl sm:text-2xl text-amber-900">mm</div>
+          </div>
+        </div>
+
+        <!-- Jump Arrows & Zero Counts Details -->
+        <div class="mt-3 space-y-2 text-xs sm:text-sm font-bold text-slate-700">
+          <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-purple-500"></span> 1 km = 1,000 m</span>
+            <span class="bg-purple-100 text-purple-800 px-2.5 py-1 rounded-lg border border-purple-300 font-extrabold flex items-center gap-1">
+              <span>× 1,000</span> <span class="bg-purple-600 text-white text-[11px] px-1.5 py-0.2 rounded-full">Add 3 Zeros (000)</span>
+            </span>
+          </div>
+          <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500"></span> 1 m = 100 cm</span>
+            <span class="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-lg border border-blue-300 font-extrabold flex items-center gap-1">
+              <span>× 100</span> <span class="bg-blue-600 text-white text-[11px] px-1.5 py-0.2 rounded-full">Add 2 Zeros (00)</span>
+            </span>
+          </div>
+          <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> 1 cm = 10 mm</span>
+            <span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg border border-emerald-300 font-extrabold flex items-center gap-1">
+              <span>× 10</span> <span class="bg-emerald-600 text-white text-[11px] px-1.5 py-0.2 rounded-full">Add 1 Zero (0)</span>
+            </span>
+          </div>
+          <div class="flex items-center justify-between bg-amber-50 p-2.5 rounded-xl border border-amber-300 shadow-sm">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> 1 m = 1,000 mm (Big Leap!)</span>
+            <span class="bg-amber-200 text-amber-900 px-2.5 py-1 rounded-lg border border-amber-400 font-extrabold flex items-center gap-1">
+              <span>× 1,000</span> <span class="bg-amber-600 text-white text-[11px] px-1.5 py-0.2 rounded-full">Add 3 Zeros (000)</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Small Units up to Big Units (Division) -->
+        <div class="text-center text-xs font-bold text-blue-800 bg-blue-100 py-1.5 px-3 rounded-xl mt-3 border border-blue-300 flex items-center justify-center gap-2">
+          <span>⬆️ Going UP (Smaller ➔ Bigger)</span>
+          <span class="bg-blue-600 text-white px-2 py-0.5 rounded-full font-black">DIVIDE & REMOVE ZEROS!</span>
+        </div>
+      </div>
+
+      <!-- Real world size references -->
+      <div class="grid grid-cols-2 gap-2 text-xs font-bold text-slate-600">
+        <div class="p-2 bg-slate-100 rounded-xl">🐜 1 mm ≈ thickness of a credit card</div>
+        <div class="p-2 bg-slate-100 rounded-xl">🐞 1 cm ≈ width of a fingernail</div>
+        <div class="p-2 bg-slate-100 rounded-xl">🎸 1 m ≈ length of a kid's guitar</div>
+        <div class="p-2 bg-slate-100 rounded-xl">🚌 1 km ≈ 10 big city bus lengths</div>
+      </div>
+
+      <button onclick="closeStaircaseModal()" class="w-full mt-5 py-3 btn-3d btn-green text-white font-black text-base rounded-2xl shadow-lg">
+        Got It, Let's Play!
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= ROUND COMPLETE CELEBRATION MODAL ================= -->
+  <div id="roundSuccessModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border-4 border-amber-400 pop-in">
+      <div class="text-5xl mb-2">🎉🏆✨</div>
+      <h3 class="text-2xl font-black text-amber-900 mb-1">Safari Superstar!</h3>
+      <p class="text-sm font-semibold text-slate-600 mb-4">You completed the safari adventure round!</p>
+      
+      <div class="bg-amber-50 p-4 rounded-2xl border-2 border-amber-200 mb-4 space-y-1.5 font-bold">
+        <div class="flex justify-between text-slate-700">
+          <span>Correct Answers:</span>
+          <span class="text-emerald-600 font-black" id="summaryScore">10 / 10</span>
+        </div>
+        <div class="flex justify-between text-slate-700">
+          <span>Total Stars Earned:</span>
+          <span class="text-amber-600 font-black" id="summaryStars">+30 ⭐</span>
+        </div>
+        <div class="flex justify-between text-slate-700">
+          <span>Best Streak:</span>
+          <span class="text-orange-500 font-black" id="summaryStreak">5 🔥</span>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="restartRound()" class="flex-1 py-3 btn-3d btn-yellow text-amber-900 font-black rounded-2xl">
+          Play Again
+        </button>
+        <button onclick="nextLevelFromModal()" class="flex-1 py-3 btn-3d btn-green text-white font-black rounded-2xl">
+          Next Level ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas for Confetti -->
+  <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-40 w-full h-full"></canvas>
+
+  <!-- Sound Toggle Feedback Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-full shadow-lg pointer-events-none opacity-0 transition-opacity duration-300 z-50">
+    Notification
+  </div>
+
+  <footer class="w-full max-w-4xl mx-auto text-center py-2 text-xs font-semibold text-emerald-900/70">
+    Metric Safari • Interactive Elementary Measurement Lab • Fun With mm, cm, m & km
+  </footer>
+
+  <!-- JAVASCRIPT GAME LOGIC -->
+  <script>
+    /* =========================================================
+       AUDIO SYNTHESIS SYSTEM (Pure Web Audio API - No external files)
+       ========================================================= */
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playPop() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(450, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      }
+
+      playCorrect() {
+        if (this.muted) return;
+        this.init();
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.07);
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.07 + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + idx * 0.07);
+          osc.stop(this.ctx.currentTime + idx * 0.07 + 0.26);
+        });
+      }
+
+      playWrong() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(140, this.ctx.currentTime + 0.22);
+        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.22);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.23);
+      }
+
+      playFanfare() {
+        if (this.muted) return;
+        this.init();
+        const chords = [
+          { f: 523.25, t: 0 },
+          { f: 659.25, t: 0.1 },
+          { f: 783.99, t: 0.2 },
+          { f: 1046.50, t: 0.35 }
+        ];
+        chords.forEach(c => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(c.f, this.ctx.currentTime + c.t);
+          gain.gain.setValueAtTime(0.3, this.ctx.currentTime + c.t);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + c.t + 0.5);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + c.t);
+          osc.stop(this.ctx.currentTime + c.t + 0.55);
+        });
+      }
+    }
+
+    const sound = new SoundFX();
+
+    /* =========================================================
+       CONFETTI CANVASES & PARTICLES
+       ========================================================= */
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let confettiList = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function triggerConfetti(count = 70) {
+      const colors = ['#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6', '#FBBF24'];
+      for (let i = 0; i < count; i++) {
+        confettiList.push({
+          x: canvas.width * 0.5 + (Math.random() * 200 - 100),
+          y: canvas.height * 0.4 + (Math.random() * 100 - 50),
+          vx: (Math.random() - 0.5) * 12,
+          vy: -Math.random() * 10 - 4,
+          size: Math.random() * 8 + 6,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 10,
+          opacity: 1
+        });
+      }
+    }
+
+    function renderConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = confettiList.length - 1; i >= 0; i--) {
+        const p = confettiList[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.35; // gravity
+        p.rotation += p.rotSpeed;
+        p.opacity -= 0.012;
+
+        if (p.opacity <= 0 || p.y > canvas.height) {
+          confettiList.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.opacity);
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+        ctx.restore();
+      }
+      requestAnimationFrame(renderConfetti);
+    }
+    requestAnimationFrame(renderConfetti);
+
+    /* =========================================================
+       GAME STATE & CONFIGURATION
+       ========================================================= */
+    let currentLevel = 1;
+    let currentMode = 'quiz'; // 'quiz' or 'match'
+    let score = 0;
+    let stars = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let questionIndex = 1;
+    const TOTAL_QUESTIONS = 10;
+    let currentQuestion = null;
+    let typedAnswer = '';
+    let useKeypad = false;
+    let roundCorrectCount = 0;
+    let showZeroHint = true;
+
+    // Mascots & feedback phrases
+    const mascots = ['🦁', '🦒', '🐘', '🐒', '🦓'];
+    const positivePraise = [
+      "Stupendous job!",
+      "You're a metric wizard!",
+      "Super fast thinking!",
+      "Roaring good answer!",
+      "Spot on, Safari Explorer!",
+      "High five! That's it!"
+    ];
+
+    /* =========================================================
+       QUESTION GENERATION ENGINE WITH ZERO OPERATIONS
+       ========================================================= */
+    function generateQuestion(level) {
+      let fromUnit, toUnit, val, correctVal, hint, options, zeroCount, isMultiplying;
+
+      if (level === 1) {
+        // mm <-> cm (Factor 10, 1 Zero)
+        const forward = Math.random() > 0.5;
+        zeroCount = 1;
+        if (forward) {
+          // cm -> mm (Add 1 Zero)
+          isMultiplying = true;
+          val = Math.floor(Math.random() * 9) + 1; // 1 to 9
+          fromUnit = 'cm';
+          toUnit = 'mm';
+          correctVal = val * 10;
+          hint = `1 cm = 10 mm. Going smaller: add 1 zero!`;
+        } else {
+          // mm -> cm (Remove 1 Zero)
+          isMultiplying = false;
+          const base = Math.floor(Math.random() * 9) + 1;
+          val = base * 10;
+          fromUnit = 'mm';
+          toUnit = 'cm';
+          correctVal = base;
+          hint = `10 mm = 1 cm. Going bigger: take away 1 zero!`;
+        }
+      } else if (level === 2) {
+        // cm <-> m (Factor 100, 2 Zeros)
+        const forward = Math.random() > 0.5;
+        zeroCount = 2;
+        if (forward) {
+          // m -> cm (Add 2 Zeros)
+          isMultiplying = true;
+          val = Math.floor(Math.random() * 8) + 1;
+          fromUnit = 'm';
+          toUnit = 'cm';
+          correctVal = val * 100;
+          hint = `1 m = 100 cm. Going smaller: add 2 zeros (00)!`;
+        } else {
+          // cm -> m (Remove 2 Zeros)
+          isMultiplying = false;
+          const base = Math.floor(Math.random() * 8) + 1;
+          val = base * 100;
+          fromUnit = 'cm';
+          toUnit = 'm';
+          correctVal = base;
+          hint = `100 cm = 1 m. Going bigger: take away 2 zeros (00)!`;
+        }
+      } else if (level === 3) {
+        // m <-> km (Factor 1,000, 3 Zeros)
+        const forward = Math.random() > 0.5;
+        zeroCount = 3;
+        if (forward) {
+          // km -> m (Add 3 Zeros)
+          isMultiplying = true;
+          val = Math.floor(Math.random() * 7) + 1;
+          fromUnit = 'km';
+          toUnit = 'm';
+          correctVal = val * 1000;
+          hint = `1 km = 1,000 m. Going smaller: add 3 zeros (000)!`;
+        } else {
+          // m -> km (Remove 3 Zeros)
+          isMultiplying = false;
+          const base = Math.floor(Math.random() * 7) + 1;
+          val = base * 1000;
+          fromUnit = 'm';
+          toUnit = 'km';
+          correctVal = base;
+          hint = `1,000 m = 1 km. Going bigger: take away 3 zeros (000)!`;
+        }
+      } else {
+        // Level 4: Mixed Master (can include m -> mm leap as well!)
+        const typeRoll = Math.floor(Math.random() * 4);
+        if (typeRoll === 3) {
+          // Special Big Leap: m <-> mm (Factor 1,000)
+          const forward = Math.random() > 0.5;
+          zeroCount = 3;
+          if (forward) {
+            isMultiplying = true;
+            val = Math.floor(Math.random() * 5) + 1;
+            fromUnit = 'm';
+            toUnit = 'mm';
+            correctVal = val * 1000;
+            hint = `1 m = 100 cm = 1,000 mm. Leap 3 zeros (000)!`;
+          } else {
+            isMultiplying = false;
+            const base = Math.floor(Math.random() * 5) + 1;
+            val = base * 1000;
+            fromUnit = 'mm';
+            toUnit = 'm';
+            correctVal = base;
+            hint = `1,000 mm = 1 m. Remove 3 zeros (000)!`;
+          }
+        } else {
+          return generateQuestion(typeRoll + 1);
+        }
+      }
+
+      // Generate 3 plausible distractors for multiple choice
+      const distractors = new Set();
+      distractors.add(correctVal);
+
+      const potentialFakes = [
+        correctVal * 10,
+        Math.max(1, Math.round(correctVal / 10)),
+        correctVal + 10,
+        correctVal - (correctVal > 10 ? 10 : 1),
+        correctVal * 100,
+        Math.max(1, correctVal + 2)
+      ];
+
+      for (let fake of potentialFakes) {
+        if (fake !== correctVal && fake > 0) {
+          distractors.add(fake);
+        }
+        if (distractors.size >= 4) break;
+      }
+
+      let delta = 1;
+      while (distractors.size < 4) {
+        distractors.add(correctVal + delta * (correctVal > 50 ? 10 : 1));
+        delta++;
+      }
+
+      options = Array.from(distractors).sort(() => Math.random() - 0.5);
+
+      return {
+        fromUnit,
+        toUnit,
+        val,
+        correctVal,
+        hint,
+        options,
+        zeroCount,
+        isMultiplying
+      };
+    }
+
+    /* =========================================================
+       UI UPDATES & ZERO HINT RENDERING
+       ========================================================= */
+    function loadNextQuestion() {
+      typedAnswer = '';
+      document.getElementById('playerInputDisplay').textContent = '?';
+      document.getElementById('currentQNum').textContent = questionIndex;
+
+      currentQuestion = generateQuestion(currentLevel);
+
+      document.getElementById('questionVal').textContent = currentQuestion.val.toLocaleString();
+      document.getElementById('questionUnit').textContent = currentQuestion.fromUnit;
+      document.getElementById('targetUnit').textContent = currentQuestion.toUnit;
+      document.getElementById('questionHint').textContent = currentQuestion.hint;
+
+      // Update the Mascot
+      const mascot = mascots[Math.floor(Math.random() * mascots.length)];
+      document.getElementById('mascotIcon').textContent = mascot;
+
+      // Render the Dynamic Zero Hint Visual
+      renderZeroHint();
+
+      renderChoices(currentQuestion.options);
+    }
+
+    function renderZeroHint() {
+      const bubblesContainer = document.getElementById('zeroBubblesRow');
+      const actionFormula = document.getElementById('zeroActionFormula');
+      const hintHeading = document.getElementById('zeroHintHeading');
+      bubblesContainer.innerHTML = '';
+
+      if (currentQuestion.isMultiplying) {
+        // Going to smaller unit: ADD ZEROS
+        hintHeading.innerHTML = `Zero Clue: <span class="text-emerald-700 font-extrabold">+${currentQuestion.zeroCount} Zero${currentQuestion.zeroCount > 1 ? 's' : ''} to ADD</span>`;
+
+        // Create base number box
+        const baseBox = document.createElement('div');
+        baseBox.className = "bg-white text-slate-800 font-black px-3 py-1 rounded-xl border-2 border-emerald-300 shadow text-lg sm:text-xl";
+        baseBox.textContent = currentQuestion.val;
+        bubblesContainer.appendChild(baseBox);
+
+        // Plus symbol
+        const plusSign = document.createElement('span');
+        plusSign.className = "text-emerald-600 font-black text-xl";
+        plusSign.textContent = "+";
+        bubblesContainer.appendChild(plusSign);
+
+        // Create animated bouncy zero bubbles
+        for (let i = 0; i < currentQuestion.zeroCount; i++) {
+          const zeroBubble = document.createElement('div');
+          zeroBubble.className = "w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white font-black text-xl sm:text-2xl flex items-center justify-center shadow-lg border-2 border-emerald-300 bounce-zero";
+          zeroBubble.style.animationDelay = `${i * 0.18}s`;
+          zeroBubble.textContent = "0";
+          bubblesContainer.appendChild(zeroBubble);
+        }
+
+        // Action Formula Text
+        const zerosString = "0".repeat(currentQuestion.zeroCount);
+        actionFormula.innerHTML = `Multiplying by <strong>${Math.pow(10, currentQuestion.zeroCount).toLocaleString()}</strong> ➔ Attach <strong>${zerosString}</strong> to <strong>${currentQuestion.val}</strong> to get <strong>${currentQuestion.val}${zerosString}</strong>!`;
+
+      } else {
+        // Going to bigger unit: REMOVE ZEROS
+        hintHeading.innerHTML = `Zero Clue: <span class="text-blue-700 font-extrabold">-${currentQuestion.zeroCount} Zero${currentQuestion.zeroCount > 1 ? 's' : ''} to REMOVE</span>`;
+
+        // Show base number with crossed-out/popping zero
+        const valStr = currentQuestion.val.toString();
+        const keepPart = valStr.slice(0, -currentQuestion.zeroCount);
+        const removePart = valStr.slice(-currentQuestion.zeroCount);
+
+        const numberBox = document.createElement('div');
+        numberBox.className = "flex items-center gap-1 bg-white text-slate-800 font-black px-3 py-1 rounded-xl border-2 border-blue-300 shadow text-lg sm:text-xl";
+        numberBox.innerHTML = `<span>${keepPart}</span><span class="text-red-500 line-through opacity-70 underline decoration-wavy decoration-red-500">${removePart}</span>`;
+        bubblesContainer.appendChild(numberBox);
+
+        const minusSign = document.createElement('span');
+        minusSign.className = "text-blue-600 font-black text-xl";
+        minusSign.textContent = "➔";
+        bubblesContainer.appendChild(minusSign);
+
+        // Popping away zeros
+        for (let i = 0; i < currentQuestion.zeroCount; i++) {
+          const zeroBubble = document.createElement('div');
+          zeroBubble.className = "w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500 text-white font-black text-xl sm:text-2xl flex items-center justify-center shadow-lg border-2 border-rose-300 pop-away";
+          zeroBubble.style.animationDelay = `${i * 0.25}s`;
+          zeroBubble.textContent = "0";
+          bubblesContainer.appendChild(zeroBubble);
+        }
+
+        actionFormula.innerHTML = `Dividing by <strong>${Math.pow(10, currentQuestion.zeroCount).toLocaleString()}</strong> ➔ Take away <strong>${currentQuestion.zeroCount} zero${currentQuestion.zeroCount > 1 ? 's' : ''}</strong> from <strong>${currentQuestion.val}</strong> to get <strong>${keepPart}</strong>!`;
+      }
+    }
+
+    function toggleZeroHintVisibility() {
+      sound.playPop();
+      showZeroHint = !showZeroHint;
+      const content = document.getElementById('zeroHintContent');
+      const btn = document.getElementById('zeroHintToggleBtn');
+
+      if (showZeroHint) {
+        content.classList.remove('hidden');
+        btn.textContent = 'Hide Zero Hint';
+      } else {
+        content.classList.add('hidden');
+        btn.textContent = 'Show Zero Hint';
+      }
+    }
+
+    function renderChoices(options) {
+      const container = document.getElementById('choiceOptionsContainer');
+      container.innerHTML = '';
+
+      const colorClasses = [
+        'btn-yellow text-amber-900',
+        'btn-green text-white',
+        'btn-blue text-white',
+        'btn-orange text-white'
+      ];
+
+      options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        const color = colorClasses[idx % colorClasses.length];
+        btn.className = `btn-3d ${color} py-3 sm:py-4 px-2 rounded-2xl text-xl sm:text-2xl font-black shadow-md flex flex-col items-center justify-center`;
+        btn.innerHTML = `<span>${opt.toLocaleString()}</span><span class="text-xs opacity-80 uppercase">${currentQuestion.toUnit}</span>`;
+        btn.onclick = () => selectChoice(opt, btn);
+        container.appendChild(btn);
+      });
+    }
+
+    function selectChoice(selectedVal, btnElement) {
+      sound.playPop();
+      if (selectedVal === currentQuestion.correctVal) {
+        handleSuccess(btnElement);
+      } else {
+        handleWrong(btnElement);
+      }
+    }
+
+    function handleSuccess(elementRef) {
+      sound.playCorrect();
+      triggerConfetti(35);
+
+      streak++;
+      if (streak > bestStreak) bestStreak = streak;
+      const points = 10 + (streak * 2);
+      stars += points;
+      roundCorrectCount++;
+
+      updateStatsUI();
+
+      // Fun mascot reaction
+      const praise = positivePraise[Math.floor(Math.random() * positivePraise.length)];
+      document.getElementById('mascotText').textContent = `${praise} +${points} Stars! ⭐`;
+
+      if (elementRef) {
+        elementRef.classList.add('ring-4', 'ring-emerald-400', 'bg-emerald-500');
+      }
+
+      setTimeout(() => {
+        if (questionIndex >= TOTAL_QUESTIONS) {
+          finishRound();
+        } else {
+          questionIndex++;
+          loadNextQuestion();
+        }
+      }, 900);
+    }
+
+    function handleWrong(elementRef) {
+      sound.playWrong();
+      streak = 0;
+      updateStatsUI();
+
+      document.getElementById('mascotText').textContent = `Oops! Take another peek at the helper chart. You can do it! 💪`;
+
+      if (elementRef) {
+        elementRef.classList.add('wiggle', 'ring-4', 'ring-red-400');
+        setTimeout(() => {
+          elementRef.classList.remove('wiggle', 'ring-4', 'ring-red-400');
+        }, 500);
+      }
+    }
+
+    function updateStatsUI() {
+      document.getElementById('starCounter').textContent = stars;
+      document.getElementById('streakCounter').textContent = streak;
+    }
+
+    /* =========================================================
+       ON-SCREEN KEYPAD INPUT SUPPORT
+       ========================================================= */
+    function toggleInputMode() {
+      sound.playPop();
+      useKeypad = !useKeypad;
+      const choices = document.getElementById('choiceOptionsContainer');
+      const numpad = document.getElementById('numpadContainer');
+      const toggleText = document.getElementById('toggleInputText');
+
+      if (useKeypad) {
+        choices.classList.add('hidden');
+        numpad.classList.remove('hidden');
+        toggleText.textContent = 'Switch to Multi-Choice';
+      } else {
+        choices.classList.remove('hidden');
+        numpad.classList.add('hidden');
+        toggleText.textContent = 'Switch to Number Pad';
+      }
+    }
+
+    function pressKey(num) {
+      sound.playPop();
+      if (num === 'clear') {
+        typedAnswer = '';
+      } else {
+        if (typedAnswer.length < 7) {
+          typedAnswer += num;
+        }
+      }
+      document.getElementById('playerInputDisplay').textContent = typedAnswer || '?';
+    }
+
+    function submitKeyAnswer() {
+      if (!typedAnswer) return;
+      const numAnswer = parseInt(typedAnswer, 10);
+      if (numAnswer === currentQuestion.correctVal) {
+        handleSuccess(null);
+      } else {
+        handleWrong(null);
+        typedAnswer = '';
+        document.getElementById('playerInputDisplay').textContent = '?';
+      }
+    }
+
+    function showQuickHint() {
+      sound.playPop();
+      openStaircaseModal();
+    }
+
+    /* =========================================================
+       LEVEL MANAGEMENT
+       ========================================================= */
+    function setLevel(lvl) {
+      sound.playPop();
+      currentLevel = lvl;
+
+      // Update button visual styles
+      for (let i = 1; i <= 4; i++) {
+        const btn = document.getElementById(`lvlBtn${i}`);
+        if (i === lvl) {
+          btn.className = "lvl-btn flex-1 min-w-[78px] py-2 px-2 rounded-2xl font-black text-xs sm:text-sm text-center border-4 border-emerald-500 bg-white text-emerald-800 shadow transition-all scale-105";
+        } else {
+          btn.className = "lvl-btn flex-1 min-w-[78px] py-2 px-2 rounded-2xl font-black text-xs sm:text-sm text-center border-4 border-transparent bg-white/70 text-slate-600 shadow transition-all";
+        }
+      }
+
+      restartRound();
+    }
+
+    function finishRound() {
+      sound.playFanfare();
+      triggerConfetti(90);
+
+      document.getElementById('summaryScore').textContent = `${roundCorrectCount} / ${TOTAL_QUESTIONS}`;
+      document.getElementById('summaryStars').textContent = `+${roundCorrectCount * 12} ⭐`;
+      document.getElementById('summaryStreak').textContent = `${bestStreak} 🔥`;
+
+      document.getElementById('roundSuccessModal').classList.remove('hidden');
+    }
+
+    function restartRound() {
+      document.getElementById('roundSuccessModal').classList.add('hidden');
+      questionIndex = 1;
+      roundCorrectCount = 0;
+      loadNextQuestion();
+      if (currentMode === 'match') {
+        initMatchGame();
+      }
+    }
+
+    function nextLevelFromModal() {
+      const next = currentLevel < 4 ? currentLevel + 1 : 1;
+      setLevel(next);
+    }
+
+    /* =========================================================
+       MODE 2: MATCHING CARDS MINI-GAME
+       ========================================================= */
+    let matchPairsData = [];
+    let firstSelectedCard = null;
+    let matchedPairsCount = 0;
+    let isCheckingMatch = false;
+
+    function switchMode(mode) {
+      sound.playPop();
+      currentMode = mode;
+      const tabQuiz = document.getElementById('tabQuiz');
+      const tabMatch = document.getElementById('tabMatch');
+      const quizView = document.getElementById('quizView');
+      const matchView = document.getElementById('matchView');
+
+      if (mode === 'quiz') {
+        tabQuiz.className = "flex-1 py-2 font-black rounded-xl text-amber-900 bg-white shadow-md text-sm sm:text-base transition";
+        tabMatch.className = "flex-1 py-2 font-bold rounded-xl text-amber-800 hover:bg-white/50 text-sm sm:text-base transition";
+        quizView.classList.remove('hidden');
+        matchView.classList.add('hidden');
+      } else {
+        tabMatch.className = "flex-1 py-2 font-black rounded-xl text-purple-900 bg-white shadow-md text-sm sm:text-base transition";
+        tabQuiz.className = "flex-1 py-2 font-bold rounded-xl text-amber-800 hover:bg-white/50 text-sm sm:text-base transition";
+        matchView.classList.remove('hidden');
+        quizView.classList.add('hidden');
+        initMatchGame();
+      }
+    }
+
+    function generatePairsForLevel(lvl) {
+      const pairs = [];
+      const pool = [];
+
+      if (lvl === 1) {
+        // mm <-> cm
+        [2, 5, 8, 12, 20, 35, 50, 75].forEach(v => {
+          pool.push({ a: `${v} cm`, b: `${v * 10} mm` });
+        });
+      } else if (lvl === 2) {
+        // cm <-> m
+        [1, 3, 4, 7, 10, 15, 2.5, 0.5].forEach(v => {
+          pool.push({ a: `${v} m`, b: `${v * 100} cm` });
+        });
+      } else if (lvl === 3) {
+        // m <-> km
+        [1, 2, 5, 8, 10, 0.5, 3.5, 6].forEach(v => {
+          pool.push({ a: `${v} km`, b: `${v * 1000} m` });
+        });
+      } else {
+        // Mixed
+        pool.push({ a: '4 cm', b: '40 mm' });
+        pool.push({ a: '600 cm', b: '6 m' });
+        pool.push({ a: '3 km', b: '3,000 m' });
+        pool.push({ a: '90 mm', b: '9 cm' });
+        pool.push({ a: '2.5 m', b: '250 cm' });
+        pool.push({ a: '5 km', b: '5,000 m' });
+      }
+
+      // Pick 4 unique random pairs
+      pool.sort(() => Math.random() - 0.5);
+      return pool.slice(0, 4);
+    }
+
+    function initMatchGame() {
+      matchedPairsCount = 0;
+      firstSelectedCard = null;
+      isCheckingMatch = false;
+      document.getElementById('matchedCount').textContent = '0';
+
+      const rawPairs = generatePairsForLevel(currentLevel);
+      let cards = [];
+
+      rawPairs.forEach((pair, pairIdx) => {
+        cards.push({ id: pairIdx, text: pair.a, color: 'bg-emerald-100 text-emerald-900 border-emerald-400' });
+        cards.push({ id: pairIdx, text: pair.b, color: 'bg-amber-100 text-amber-900 border-amber-400' });
+      });
+
+      // Shuffle cards
+      cards.sort(() => Math.random() - 0.5);
+
+      const grid = document.getElementById('cardsGrid');
+      grid.innerHTML = '';
+
+      cards.forEach((card, index) => {
+        const div = document.createElement('button');
+        div.className = `match-card p-4 sm:p-6 rounded-2xl border-3 shadow-md flex items-center justify-center font-black text-xl sm:text-2xl cursor-pointer ${card.color} hover:shadow-lg active:scale-95`;
+        div.textContent = card.text;
+        div.dataset.pairId = card.id;
+
+        div.onclick = () => handleCardClick(div);
+        grid.appendChild(div);
+      });
+    }
+
+    function handleCardClick(cardEl) {
+      if (isCheckingMatch || cardEl.classList.contains('matched') || cardEl === firstSelectedCard) {
+        return;
+      }
+
+      sound.playPop();
+      cardEl.classList.add('selected');
+
+      if (!firstSelectedCard) {
+        firstSelectedCard = cardEl;
+      } else {
+        // Compare pair IDs
+        isCheckingMatch = true;
+        const id1 = firstSelectedCard.dataset.pairId;
+        const id2 = cardEl.dataset.pairId;
+
+        if (id1 === id2) {
+          // Success match
+          setTimeout(() => {
+            sound.playCorrect();
+            triggerConfetti(25);
+            stars += 15;
+            streak++;
+            updateStatsUI();
+
+            firstSelectedCard.classList.remove('selected');
+            cardEl.classList.remove('selected');
+            firstSelectedCard.classList.add('matched');
+            cardEl.classList.add('matched');
+
+            matchedPairsCount++;
+            document.getElementById('matchedCount').textContent = matchedPairsCount;
+
+            firstSelectedCard = null;
+            isCheckingMatch = false;
+
+            if (matchedPairsCount === 4) {
+              sound.playFanfare();
+              triggerConfetti(80);
+              showToast("Safari Safari! All pairs matched! 🎉");
+            }
+          }, 400);
+        } else {
+          // Missed match
+          setTimeout(() => {
+            sound.playWrong();
+            firstSelectedCard.classList.remove('selected');
+            cardEl.classList.remove('selected');
+            firstSelectedCard = null;
+            isCheckingMatch = false;
+          }, 600);
+        }
+      }
+    }
+
+    /* =========================================================
+       HELPER MODAL LOGIC
+       ========================================================= */
+    const staircaseModal = document.getElementById('staircaseModal');
+    const modalBox = document.getElementById('modalBox');
+
+    function openStaircaseModal() {
+      sound.playPop();
+      staircaseModal.classList.remove('hidden');
+      setTimeout(() => {
+        staircaseModal.classList.remove('opacity-0');
+        modalBox.classList.remove('scale-95');
+      }, 10);
+    }
+
+    function closeStaircaseModal() {
+      sound.playPop();
+      staircaseModal.classList.add('opacity-0');
+      modalBox.classList.add('scale-95');
+      setTimeout(() => {
+        staircaseModal.classList.add('hidden');
+      }, 250);
+    }
+
+    document.getElementById('staircaseHelpBtn').onclick = openStaircaseModal;
+
+    /* =========================================================
+       AUDIO TOGGLE & TOAST NOTIFICATION
+       ========================================================= */
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    soundToggleBtn.onclick = () => {
+      sound.muted = !sound.muted;
+      soundToggleBtn.textContent = sound.muted ? '🔇' : '🔊';
+      showToast(sound.muted ? "Sound Muted" : "Sound Enabled");
+    };
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('opacity-0');
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+      }, 1600);
+    }
+
+    // Keyboard support for desktop children
+    window.addEventListener('keydown', (e) => {
+      if (currentMode !== 'quiz' || !useKeypad) return;
+      if (e.key >= '0' && e.key <= '9') {
+        pressKey(e.key);
+      } else if (e.key === 'Backspace' || e.key === 'c' || e.key === 'C') {
+        pressKey('clear');
+      } else if (e.key === 'Enter') {
+        submitKeyAnswer();
+      }
+    });
+
+    // Initial startup
+    window.onload = () => {
+      loadNextQuestion();
+    };
+  </script>
+</body>
+</html>
